@@ -1,0 +1,40 @@
+---
+title: "Homework 2"
+author: "Yuki Joyama"
+date: "2024-02-16"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, message = F, warning = F)
+
+library(tidyverse)
+```
+
+## 1
+```{r}
+# load data
+dose = c(0, 1, 2, 3, 4)
+num = c(30, 30, 30, 30, 30)
+dead = c(2, 8, 15, 23, 27)
+data_1 = data.frame(dose, num, dead)
+
+# visualization 
+# plot(data_1$dose, data_1$dead/data_1$num, xlab = 'dose', ylab = 'Proportion dying', cex = 1.5, pch = 19, cex.lab = 1.6, cex.axis = 1.5)
+
+# data prep 
+x = data_1$dose
+y = data_1$dead
+m = data_1$num
+resp = cbind(y, m-y)
+```
+
+Now, I will fit the model $g(P(dying)) = \alpha + \beta X$ with logit, probit, and complementary log-log links.
+
+```{r}
+# fit logistic model, logit link
+glm_logit = glm(resp ~ x, family = binomial(link = 'logit'))
+summary(glm_logit)
+```
+
+
