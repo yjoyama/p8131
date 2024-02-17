@@ -68,6 +68,10 @@ round(beta + c(qnorm(0.025), -qnorm(0.025)) * se, 3)
 # p_hat(dying|x = 0.01), logit
 predict(glm_logit, newdata = data.frame(x = 0.01), type = 'response')
 
+# calculate by hand
+# or = exp(coef(glm_logit)[1] + 0.01 * coef(glm_logit)[2])
+# or / (1 + or)
+
 # p_hat(dying|x = 0.01), probit
 predict(glm_probit, newdata = data.frame(x = 0.01), type = 'response')
 
@@ -82,8 +86,94 @@ predict(glm_cloglog, newdata = data.frame(x = 0.01), type = 'response')
 |probit | 0.686|   (0.497-0.876)|  0.314| 0.0853|
 |c-log-log  | 0.747|   (0.532-0.961)| 2.231| 0.128 |
 
-### (b)
+The estimate of beta in the logit model represents the change in the log odds of the response variable for a one-unit change in the predictor variable (dose). The 95% CI for the estimate of beta provides a range within which we can be 95% confident that the true value of beta lies. The deviance can be used to check the goodness of fit of the models and 0.314 in probit model indicates a better fit. $\hat{p}(dying|x=0.01)$ gives a probability estimate given that the predictor variable x takes the value of 0.01. In logit and probit model, the probabilities are similar. However, in the c-log-log model, which employs an asymmetric link function, the estimated probabilities appears to be larger than the other two models. 
 
+### (b)
+Three models can be expressed as below:  
+$log(\frac{p}{1-p})=\alpha+\beta X$  
+$\Phi^{-1}(p)=\alpha+\beta X$  
+$log(-log(1-p))=\alpha+\beta X$  
+We want to estimate $x_0$ such that $\alpha+\beta X=g(p = 0.5)$    
+
+Given p=0.5,   
+**Logit:** $0=\alpha+\beta x_0$ -> $x_0=- \frac{\alpha}{\beta}$ 
+```{r echo=FALSE, results=FALSE}
+log(0.5/(1 - 0.5))
+```
+$var(\hat{x_0})=(\frac{\partial x_0}{\partial \alpha})^2 var(\hat{\alpha})+(\frac{\partial x_0}{\partial \beta})^2var(\hat{\beta})+2(\frac{\partial x_0}{\partial \alpha})(\frac{\partial x_0}{\partial \beta})cov(\hat{\alpha},\hat{\beta})$   
+-> $var(\hat{x_0})=\frac{1}{\beta^2} var(\hat{\alpha})+\frac{\alpha^2}{ \beta^4}var(\hat{\beta})-2\frac{\alpha}{\beta^3}cov(\hat{\alpha},\hat{\beta})$ 
+
+**Probit:** 
+```{r echo=FALSE, results=FALSE}
+qnorm(p = 0.5)
+```
+$0=\alpha+\beta x_0$ -> $x_0=- \frac{\alpha}{\beta}$   
+$var(\hat{x_0})=\frac{1}{\beta^2} var(\hat{\alpha})+\frac{\alpha^2}{ \beta^4}var(\hat{\beta})-2\frac{\alpha}{\beta^3}cov(\hat{\alpha},\hat{\beta})$
+**C-loglog:**
+```{r echo=FALSE, results=FALSE}
+round(log(-log(1 - 0.5)), 3)
+```
+$-0.367=\alpha+\beta x_0$ 
+-> $x_0 = -\frac{0.367+\alpha}{\beta}$   
+$var(\hat{x_0})=(\frac{\partial x_0}{\partial \alpha})^2 var(\hat{\alpha})+(\frac{\partial x_0}{\partial \beta})^2var(\hat{\beta})+2(\frac{\partial x_0}{\partial \alpha})(\frac{\partial x_0}{\partial \beta})cov(\hat{\alpha},\hat{\beta})$   
+-> $var(\hat{x_0})=\frac{1}{\beta^2} var(\hat{\alpha})+\frac{(\alpha - log(-log(1-0.5)))^2}{ \beta^4}var(\hat{\beta})+2\frac{log(-log(1-0.5))- \alpha}{\beta^3}cov(\hat{\alpha},\hat{\beta})$  
+
+The asymptotic $(1-\alpha)100$% CI of $x_0$ is [$\hat{x_0}-z_{\alpha/2}\sqrt{var(\hat{x_0})}, \hat{x_0}+z_{\alpha/2}\sqrt{var(\hat{x_0})}$]
+
+Now, I will calculate these values using the following codes.  
+```{r}
+# LD50 point est, logit 
+x0 = - glm_logit$coefficients[1]/glm_logit$coefficients[2]
+round(exp(x0), 3)
+
+# 95% CI
+beta0 = glm_logit$coefficients[1]
+beta1 = glm_logit$coefficients[2]
+betacov = vcov(glm_logit) # inverse fischer information
+varx0 = betacov[1, 1]/(beta1^2) + betacov[2, 2]*(beta0^2)/(beta1^4) - 2*betacov[1,2]*beta0/(beta1^3)
+se = sqrt(varx0)
+round(exp(x0 + c(qnorm(0.05), -qnorm(0.05)) * sqrt(varx0)), 3)
+
+# LD50 point est, probit 
+x0 = - glm_probit$coefficients[1]/glm_probit$coefficients[2]
+round(exp(x0), 3)
+
+# 95% CI
+beta0 = glm_probit$coefficients[1]
+beta1 = glm_probit$coefficients[2]
+betacov = vcov(glm_probit) # inverse fischer information
+varx0 = betacov[1, 1]/(beta1^2) + betacov[2, 2]*(beta0^2)/(beta1^4) - 2*betacov[1,2]*beta0/(beta1^3)
+se = sqrt(varx0)
+round(exp(x0 + c(qnorm(0.05), -qnorm(0.05)) * sqrt(varx0)), 3)
+
+# LD50 point est, cloglog
+x0 = (log(-log(1 - 0.5)) - glm_cloglog$coefficients[1])/(glm_cloglog$coefficients[2])
+round(exp(x0), 3)
+
+# 95% CI
+beta0 = glm_cloglog$coefficients[1]
+beta1 = glm_cloglog$coefficients[2]
+betacov = vcov(glm_cloglog) # inverse fischer information
+varx0 = betacov[1, 1]/(beta1^2) + betacov[2, 2]*(beta0 - (log(-log(1 - 0.5))))^2/(beta1^4) + 2*betacov[1,2]*(log(-log(1 - 0.5)) - beta0)/(beta1^3)
+se = sqrt(varx0)
+round(exp(x0 + c(qnorm(0.05), -qnorm(0.05)) * sqrt(varx0)), 3)
+```
+
+```{r echo=FALSE}
+# confirm LD50 and se using MASS library
+# library(MASS)
+# dose.p(glm_logit, p = 0.5)
+# dose.p(glm_probit, p = 0.5)
+# dose.p(glm_cloglog, p = 0.5)
+```
+
+The results are as follows.  
+
+| Model | Estimate LD50 | 90% CI | 
+|:------|----:|---:|
+|logit   | 7.389 |   (5.510-9.910)|  
+|probit | 7.436|   (5.583-9.904)| 
+|c-log-log  | 8.841 |   (6.526-11.977)| 
 
 ## 2
 ```{r}
