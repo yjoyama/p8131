@@ -2,13 +2,16 @@
 title: "Homework 2"
 author: "Yuki Joyama"
 date: "2024-02-16"
-output: github_document
+output: 
+  github_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = T, message = F, warning = F)
 
 library(tidyverse)
+library(glmtoolbox)
 ```
 
 ## 1
@@ -203,22 +206,40 @@ resp = cbind(y, m-y)
 ```{r}
 # fit logistic model, logit 
 glm_logit = glm(resp ~ x, family = binomial(link = 'logit'))
-summary(glm_logit)
 ```
 
-The residual deviance is 4.8285, with 15 degrees of freedom. This indicates that the model explains some of the variability in the data, as the residual deviance is lower than the null deviance.
+I employed the logistic regression model to investigate the relationship between the scholarship amount and enrollment rate.  
+Model: $g(P(enrolls))=\beta_0+\beta_1 X$
+
+By the rule of thumb, there are not sufficient people in each scholarship group. Therefore, I will conduct Hosmer-Lemeshow test to check the goodness of fit. 
+
+```{r}
+# HL test
+hltest(glm_logit)
+```
+
+P-value of 0.990 indicates that the model fits well to the data.     
 
 ### (b) How do you interpret the relationship between the scholarship amount and enrollment rate? What is 95% CI?
 ```{r}
+summary(glm_logit)
+
 # 95% CI for beta, logit
 beta = glm_logit$coefficients[2]
 se = sqrt(vcov(glm_logit)[2, 2])
 round(beta + c(qnorm(0.025), -qnorm(0.025)) * se, 3)
 ```
 
+The model assumes that when the amount scholarship is zero, the log odds for enrollment among offer is -1.598. One unit increase of scholarship amount (in thousand dollars) will increase the log odds of enrollment by 0.0163. With 95% confidence, the true $\beta_1$ lies within (0.001-0.032).  
+
 ### (c) How much scholarship should we provide to get 40% yield rate (the percentage of admitted students who enroll?) What is the 95% CI?
 ```{r}
 
 ```
+
+
+
+
+
 
  
