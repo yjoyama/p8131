@@ -108,7 +108,8 @@ $var(\hat{x_0})=(\frac{\partial x_0}{\partial \alpha})^2 var(\hat{\alpha})+(\fra
 qnorm(p = 0.5)
 ```
 $0=\alpha+\beta x_0$ -> $x_0=- \frac{\alpha}{\beta}$   
-$var(\hat{x_0})=\frac{1}{\beta^2} var(\hat{\alpha})+\frac{\alpha^2}{ \beta^4}var(\hat{\beta})-2\frac{\alpha}{\beta^3}cov(\hat{\alpha},\hat{\beta})$
+$var(\hat{x_0})=\frac{1}{\beta^2} var(\hat{\alpha})+\frac{\alpha^2}{ \beta^4}var(\hat{\beta})-2\frac{\alpha}{\beta^3}cov(\hat{\alpha},\hat{\beta})$  
+
 **C-loglog:**
 ```{r echo=FALSE, results=FALSE}
 round(log(-log(1 - 0.5)), 3)
@@ -176,6 +177,10 @@ The results are as follows.
 |c-log-log  | 8.841 |   (6.526-11.977)| 
 
 ## 2
+- Amount: one-time two-year scholarship  
+- Offer: the number of offers made with the corresponding scholarship  
+- Enrolls: the number of offer accepted  
+
 ```{r}
 # load data
 amount = seq(10, 90, 5)
@@ -200,6 +205,8 @@ resp = cbind(y, m-y)
 glm_logit = glm(resp ~ x, family = binomial(link = 'logit'))
 summary(glm_logit)
 ```
+
+The residual deviance is 4.8285, with 15 degrees of freedom. This indicates that the model explains some of the variability in the data, as the residual deviance is lower than the null deviance.
 
 ### (b) How do you interpret the relationship between the scholarship amount and enrollment rate? What is 95% CI?
 ```{r}
