@@ -2,9 +2,7 @@
 title: "Homework 2"
 author: "Yuki Joyama"
 date: "2024-02-16"
-output: 
-  github_document: default
-  pdf_document: default
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
