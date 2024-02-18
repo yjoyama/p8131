@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = T, message = F, warning = F)
 
 library(tidyverse)
 library(glmtoolbox)
+library(MASS)
 ```
 
 ## 1
@@ -165,7 +166,6 @@ round(exp(x0 + c(qnorm(0.05), -qnorm(0.05)) * sqrt(varx0)), 3)
 
 ```{r echo=FALSE}
 # confirm LD50 and se using MASS library
-# library(MASS)
 # dose.p(glm_logit, p = 0.5)
 # dose.p(glm_probit, p = 0.5)
 # dose.p(glm_cloglog, p = 0.5)
@@ -232,11 +232,22 @@ round(beta + c(qnorm(0.025), -qnorm(0.025)) * se, 3)
 
 The model assumes that when the amount scholarship is zero, the log odds for enrollment among offer is -1.598. One unit increase of scholarship amount (in thousand dollars) will increase the log odds of enrollment by 0.0163. With 95% confidence, the true $\beta_1$ lies within (0.001-0.032).  
 
-### (c) How much scholarship should we provide to get 40% yield rate (the percentage of admitted students who enroll?) What is the 95% CI?
-```{r}
+### (c) How much scholarship should we provide to get 40% yield rate (the percentage of admitted students who enroll?) What is the 95% CI?  
 
+We want to estimate $x_0$ such that $\beta_0+\beta_1 x_0=g(p = 0.4)=log(\frac{0.4}{1-0.4})$  
+```{r}
+# x0 point estimate
+# round((log(0.4/(1-0.4)) - glm_logit$coefficients[1]) / glm_logit$coefficients[2], 3)
+
+dose.p(glm_logit, p = 0.4)
+x0 = 73.18517
+se = 16.82183
+
+# 95% CI 
+x0 + c(qnorm(0.05), -qnorm(0.05)) * se
 ```
 
+Therefore, we should provide 73,185 USD (95% CI: 45,516-100,855) to get 40% yield rate. 
 
 
 
