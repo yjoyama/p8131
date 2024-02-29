@@ -1,0 +1,13 @@
+---
+title: "Homework 4"
+author: "Yuki Joyama"
+date: "2024-02-29"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, message = F, warning = F)
+
+library(tidyverse)
+library(glmtoolbox)
+```

@@ -2,7 +2,7 @@
 title: "Homework 3"
 author: "Yuki Joyama"
 date: "2024-02-27"
-output: github_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -119,7 +119,7 @@ The Hosmer-Lemeshow goodness-of-fit test indicates that the model in (a) has a l
 # calculate dispersion parameter
 G.stat = sum(residuals(logit.ger, type = 'pearson') ^ 2) # pearson chisq 
 G.stat
-phi = G.stat / (21 - 2)
+phi = G.stat / (21 - 3)
 phi
 tilde.phi = logit.ger$deviance / logit.ger$df.residual
 tilde.phi 
