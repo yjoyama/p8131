@@ -2,13 +2,14 @@
 title: "Homework 3"
 author: "Yuki Joyama"
 date: "2024-02-27"
-output: pdf_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = T, message = F, warning = F)
 
 library(tidyverse)
+library(glmtoolbox)
 ```
 
 ## 1
@@ -46,4 +47,102 @@ $x_2:$ the indicator of age (as a continuous variable)
 * As age increases by one year, the odds ratio of having esophageal cancer increases by `r round(exp(coef(logit.prosp))[3], 3)` holding other covariates constant   
 
 ### b
+$\Psi_j:$ the odds ratio relating alcohol consumption and disease in the $j^{th}$ age group ($j = 1,..., 6$)  
+Compare the following two models:  
+$M_0:\Psi_j=1$ for all $j$  
+$M_1:\Psi_j=\Psi$ (where $\Psi$ is an unknown constant)  
+
+```{r}
+# Model 0 has age (as categorical variable) as a covariate
+m0 = glm(resp ~ factor(df_ec$age), family = binomial(link = 'logit'))
+
+summary(m0)
+
+# Model 1 has alcohol and age (as categorical variable) as covariates
+m1 = glm(resp ~ df_ec$alcohol + factor(df_ec$age), family = binomial(link = 'logit'))
+
+summary(m1)
+```
+
+$\Psi_j =1$ means that the coefficient of alcohol (log odds) equals to zero in Model 0.     
+Model 0 is nested within Model 1, so I will perform ANOVA for the deviance analysis. 
+
+```{r}
+# deviance analysis for nested models
+anova(m0, m1)
+```
+
+The residual deviance appears to be reduced in Model 1 compared to Model 0, indicating that Model 1 has a better fit by adding alcohol as the response variable.
+
+## 2
+```{r}
+# data prep
+df_ger <- data.frame(
+  seeds = c(rep(c("oa_75", "oa_73"), times = c(11, 10))),
+  root = c(rep(c("bean", "cucumber"), times = c(5, 6)), rep(c("bean", "cucumber"), times = c(5, 5))),
+  y = c(10, 23, 23, 26, 17, 5, 53, 55, 32, 46, 10, 8, 10, 8, 23, 0, 3, 22, 15, 32, 3),
+  m = c(39, 62, 81, 51, 39, 6, 74, 72, 51, 79, 13, 16, 30, 28, 45, 4, 12, 41, 30, 51, 7)
+) 
+
+# response variable
+resp = cbind(df_ger$y, df_ger$m - df_ger$y) 
+```
+
+### a
+```{r}
+# fit a logistic regression model
+logit.ger = glm(resp ~ df_ger$seeds + df_ger$root, family = binomial(link = 'logit'))
+
+summary(logit.ger) 
+
+exp(coef(logit.ger)) # odds ratio estimates
+```
+
+In this model, we treat germination status (germinated vs not germinated) as a response variable and exposures (types of seed and root extract) as predictors.  
+
+$logit(\pi_i)=\beta_0+\beta_1x_1+\beta_2x_2$    
+$x_1:$ the type of seeds  
+$x_2:$ the type of root extract media     
+
+* The odds ratio of having germination is `r round(exp(coef(logit.ger))[2], 3)` in *O. aegyptiaca 75* compared to *O. aegyptiaca 73* holding other covariates constant. However, given p-value > 0.05 of this coefficient, no statistically significant association is implied between the type of seeds and the germination status  
+* The odds ratio of having germination is `r round(exp(coef(logit.ger))[3], 3)` in cucumber compared to bean root extract holding other covariates constant  
+
+### b
+```{r}
+# goodness of fit
+hltest(logit.ger)
+```
+
+The Hosmer-Lemeshow goodness-of-fit test indicates that the model in (a) has a lack of fit. 
+
+```{r}
+# calculate dispersion parameter
+G.stat = sum(residuals(logit.ger, type = 'pearson') ^ 2) # pearson chisq 
+G.stat
+phi = G.stat / (21 - 2)
+phi
+tilde.phi = logit.ger$deviance / logit.ger$df.residual
+tilde.phi 
+
+# test over-dispersion (half normal plot)
+res = residuals(logit.ger, type='pearson')
+plot(qnorm((21 + 1: 21 + 0.5)/(2 * 21 + 1.125)), sort(abs(res)), xlab = 'Expected Half-Normal Order Stats', ylab = 'Ordered Abs Pearson Residuals')
+abline(a = 0, b = 1)
+abline(a = 0, b = sqrt(phi), lty = 2, col = 'red')
+```
+
+There is a linear deviation from the reference line in the half normal plot, suggesting that the response variance $Y_i$ exceeds the variance assumed by the model.   
+Hence, we can say that there is over-dispersion in the original model.  
+The estimate of dispersion parameter: $\hat\phi=$ `r round(phi, 2)`
+
+```{r}
+summary(logit.ger, dispersion = phi)
+```
+
+After adjusting for over-dispersion, the coefficient for the type of seeds still has p-value larger than 0.05.  
+This implies that no statistically significant association is detected between the type of seeds and response variable in the updated model.  
+
+### c
+One of plausible cause of the over-dispersion in this experiment is the potential heterogeneity of the data within each group. We do not know how old each seed was, what the room temperature and humidity were during the observation period, or how much water each seed received. Many underlying factors may affect seed germination and our data classification/model cannot account for them.
+
 
