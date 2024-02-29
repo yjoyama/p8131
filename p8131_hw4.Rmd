@@ -9,5 +9,77 @@ output: github_document
 knitr::opts_chunk$set(echo = T, message = F, warning = F)
 
 library(tidyverse)
-library(glmtoolbox)
+library(MASS)
+library(nnet)
 ```
+
+```{r}
+# data prep
+df_house = data.frame(
+  contact = c(rep(c("low", "high"), times = c(3, 3))),
+  type = c(rep(c("tower", "apartment", "house"), length.out = 3)), 
+  sat.low = c(65, 130, 67, 34, 141, 130),
+  sat.medium = c(54, 76, 48, 47, 116, 105),
+  sat.high = c(100, 111, 62, 100, 191, 104)
+)
+```
+
+## 1
+```{r}
+# calculate row-wise percentages
+df_house$sat.low_per <- (df_house$sat.low / rowSums(df_house[, c("sat.low", "sat.medium", "sat.high")])) * 100
+df_house$sat.medium_per <- (df_house$sat.medium / rowSums(df_house[, c("sat.low", "sat.medium", "sat.high")])) * 100
+df_house$sat.high_per <- (df_house$sat.high / rowSums(df_house[, c("sat.low", "sat.medium", "sat.high")])) * 100
+
+# pair-wise t test
+
+```
+
+## 2
+```{r}
+# fit a nominal logistic regression model
+house.mult <- multinom(cbind(sat.low, sat.medium, sat.high) ~ contact + type, data = df_house)
+summary(house.mult)
+```
+
+```{r}
+# goodness of fit
+pihat = predict(house.mult,type = 'probs') 
+pihat
+m = rowSums(df_house[, 3:5])
+
+# pearson residuals 
+res.pearson = (df_house[, 3:5] - pihat*m) / sqrt(pihat*m) 
+res.pearson
+
+# Generalized Pearson Chisq Stat
+G.stat = sum(res.pearson^2) 
+G.stat
+pval = 1 - pchisq(G.stat, df = (6 - 4)*(3 - 1))
+pval # fit is good, do not reject the model
+
+# deviance
+D.stat = sum(2*df_house[, 3:5]*log(df_house[, 3:5] / (m*pihat)))
+D.stat
+```
+
+## 3
+```{r}
+# fit a ordinal logistic regression model
+
+```
+
+
+## 4
+```{r}
+# Pearson residuals 
+```
+
+
+
+
+
+
+
+
+
