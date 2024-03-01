@@ -2,7 +2,9 @@
 title: "Homework 4"
 author: "Yuki Joyama"
 date: "2024-02-29"
-output: github_document
+output: 
+  pdf_document: default
+  github_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -31,16 +33,34 @@ df_house$sat.low_per <- (df_house$sat.low / rowSums(df_house[, c("sat.low", "sat
 df_house$sat.medium_per <- (df_house$sat.medium / rowSums(df_house[, c("sat.low", "sat.medium", "sat.high")])) * 100
 df_house$sat.high_per <- (df_house$sat.high / rowSums(df_house[, c("sat.low", "sat.medium", "sat.high")])) * 100
 
-# pair-wise t test
+# table of percentages
+df_house[-(3:5)]
 
+# plot
+df_house |> 
+  dplyr::select(contact, type, sat.low_per, sat.medium_per, sat.high_per) |> 
+  pivot_longer(cols = starts_with("sat."), 
+               names_to = "sat", 
+               values_to = "proportion") |> 
+  mutate(sat = str_remove(sat, "sat\\.") |>  str_remove("_per")) |> 
+# plot
+  ggplot(aes(x = type, y = proportion, group = sat, color = sat)) +
+  geom_line() +
+  facet_grid(~contact) +
+  theme_bw()
 ```
 
 ## 2
-```{r}
+```{r results=F}
 # fit a nominal logistic regression model
-house.mult <- multinom(cbind(sat.low, sat.medium, sat.high) ~ contact + type, data = df_house)
+house.mult <- multinom(cbind(sat.low, sat.medium, sat.high) ~ factor(contact) + factor(type), data = df_house)
+```
+
+```{r}
 summary(house.mult)
 ```
+
+
 
 ```{r}
 # goodness of fit
