@@ -143,15 +143,38 @@ exp(confint(house.mult_int))
 From the output, we can see that there is a statistically significant interaction between low contact and house type for odds ratio of high satisfaction vs low satisfaction.
 
 ## 3
+Now, I will treat the satisfaction categories as ordinal variable and fit a proportional odds model. 
 ```{r}
-# fit a ordinal logistic regression model
+# data prep
+df_house2 <- df_house |> 
+  dplyr::select(contact, type, sat.low, sat.medium, sat.high) |> 
+  pivot_longer(cols = starts_with("sat."), 
+               names_to = "sat", 
+               values_to = "frequency") |> 
+  mutate(
+    sat = str_remove(sat, "sat\\."), 
+    sat = factor(sat, levels = c("low", "medium", "high"))
+  )
 
+# fit an ordinal logistic regression model
+house.mult2 <- polr(sat ~ contact + type, data = df_house2, weights = frequency)
+summary(house.mult2)
 ```
 
 
 ## 4
 ```{r}
 # Pearson residuals 
+pihat = predict(house.mult2, df_house2, type = 'p')
+m = rowSums(cbind(df_house[, 3:5]))
+res.pearson = (df_house[, 3:5] - pihat*m) / sqrt(pihat*m)
+G = sum(res.pearson^2)
+G
+
+numsamp = (3 - 1)*6 # degree of freedom for grouped data
+numparam = 2 + 3 # total num of param
+pval = 1 - pchisq(G, df = numsamp - numparam)
+pval # fits well
 ```
 
 
