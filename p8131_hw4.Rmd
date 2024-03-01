@@ -50,6 +50,8 @@ df_house |>
   theme_bw()
 ```
 
+Percentages of responses in each category by contact with other residents and type of housing is summarized in the above table and plots. Top panel is the group that answered "low" for contact and bottom is the group that answered "high". We can see that tower residents are likely to have high satisfaction compared to other types of housing, and high contact tends to have high satisfaction expect for those who live in a house. 
+
 ## 2
 ```{r results=F}
 # fit a nominal logistic regression model
@@ -58,8 +60,48 @@ house.mult <- multinom(cbind(sat.low, sat.medium, sat.high) ~ factor(contact) + 
 
 ```{r}
 summary(house.mult)
+
+# obtain odds ratio for each coefficient
+exp(coef(house.mult))
 ```
 
+The nominal logistic regression model is as follows:  
+$log(\frac{\pi_j}{\pi_1})=\beta_{0j}+\beta_{1j}x_1+\beta_{2j}x_2+\beta_{3j}x_3$, $j = 2,3$   
+
+where  
+$\pi_1:$ the probability of low satisfaction   
+$\pi_2:$ the probability of medium satisfaction  
+$\pi_3:$ the probability of high satisfaction   
+
+$$
+x_1=
+\begin{cases}
+1&\text{for low contact}\\
+0&\text{for high contact}\\
+\end{cases}
+$$
+$$
+x_2=
+\begin{cases}
+1&\text{for house}\\
+0&\text{for apartment}\\
+\end{cases}
+$$
+$$
+x_3=
+\begin{cases}
+1&\text{for tower}\\
+0&\text{for apartment}\\
+\end{cases}
+$$
+We observe that when the level of contact with other residents is low, the odds of experiencing medium and high satisfaction decrease compared to low satisfaction, while controlling for other variables. Similarly, for individuals residing in houses compared to apartments, the odds of experiencing medium satisfaction are higher relative to low satisfaction, whereas the odds of high satisfaction are lower holding other variables unchanged. Among those living in towers, the odds of experiencing both medium and high satisfaction are higher than those for low satisfaction, all else being equal.  
+For example, the odds ratio of falling into high satisfaction category (vs low satisfaction) for tower residents with high contact with other residents is `r round(exp(coef(house.mult))[2, 4], 2)`  
+
+The 95% confidence intervals for each odds ratio is as follows:
+```{r}
+# 95%CI for odds ratio
+exp(confint(house.mult))
+```
 
 
 ```{r}
@@ -76,12 +118,29 @@ res.pearson
 G.stat = sum(res.pearson^2) 
 G.stat
 pval = 1 - pchisq(G.stat, df = (6 - 4)*(3 - 1))
-pval # fit is good, do not reject the model
+pval 
 
 # deviance
 D.stat = sum(2*df_house[, 3:5]*log(df_house[, 3:5] / (m*pihat)))
 D.stat
 ```
+
+Generalized Pearson $\chi^2$ statistic shows p-value of `r round(pval, 2)`, indicating that the model has a good fit.
+
+```{r}
+# interaction
+house.mult_int <- multinom(cbind(sat.low, sat.medium, sat.high) ~ factor(contact) + factor(type) + factor(contact)*factor(type), data = df_house)
+
+summary(house.mult_int)
+
+# obtain odds ratio for each coefficient
+exp(coef(house.mult_int))
+
+# 95%CI for odds ratio
+exp(confint(house.mult_int))
+```
+
+From the output, we can see that there is a statistically significant interaction between low contact and house type for odds ratio of high satisfaction vs low satisfaction.
 
 ## 3
 ```{r}
