@@ -172,19 +172,21 @@ The output shows that the odds ratio of falling in lower category is `r round(ex
 ## 4
 ```{r}
 # Pearson residuals 
-pihat = predict(house.mult2, df_house2, type = 'p')
+pihat = predict(house.mult2, df_house[1:5], type = 'p')
 m = rowSums(cbind(df_house[, 3:5]))
 res.pearson = (df_house[, 3:5] - pihat*m) / sqrt(pihat*m)
-G = sum(res.pearson^2)
-G
+res.pearson 
 
-numsamp = (3 - 1)*6 # degree of freedom for grouped data
-numparam = 2 + 3 # total num of param
-pval = 1 - pchisq(G, df = numsamp - numparam)
-pval # fits well
+# G = sum(res.pearson^2)
+# G
+
+# numsamp = (3 - 1)*6 # degree of freedom for grouped data
+# numparam = 2 + 3 # total num of param
+# pval = 1 - pchisq(G, df = numsamp - numparam)
+# pval # fits well
 ```
 
-
+From the output of Pearson residuals, we can observe the largest discrepancies at high satisfaction category with those who live in a house and have high contact with other residents.
 
 
 
