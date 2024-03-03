@@ -159,8 +159,15 @@ df_house2 <- df_house |>
 # fit an ordinal logistic regression model
 house.mult2 <- polr(sat ~ contact + type, data = df_house2, weights = frequency)
 summary(house.mult2)
+exp(-coef(house.mult2))
 ```
 
+Let $Y$ be an ordinal outcome with $J$ categories. $P(Y\leq j)$ is the cumulative probability of $Y$ less than or equal to a specific category $j=1,...,J-1$  
+In polr, the ordinal logistic regression model is parameterized as  
+$logit(P(Y\leq j))=log\frac{P(Y\leq j)}{P(Y>j)}=\beta_{j0}-\eta_1x_1-\eta_2x_2-\eta_3x_3$  
+where $\eta_i=-\beta_i$  
+
+The output shows that the odds ratio of falling in lower category is `r round(exp(-coef(house.mult2))[1], 2)` in people with low contact holding other variables constant. And the odds ratio of falling in lower category is `r round(exp(-coef(house.mult2))[3], 2)` in people living in tower all else being equal.
 
 ## 4
 ```{r}
