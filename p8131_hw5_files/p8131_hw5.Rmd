@@ -1,0 +1,22 @@
+---
+title: "Homework 5"
+author: "Yuki Joyama"
+date: "2024-03-18"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, message = F, warning = F)
+
+library(tidyverse)
+```
+
+```{r data}
+# data prep 
+
+df_crab = read.table("p8131_hw5_files/HW5-crab.txt", header = TRUE)
+  
+df_para = read.table("p8131_hw5_files/HW5-parasite.txt", header = TRUE)
+
+```
+
