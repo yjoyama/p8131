@@ -13,10 +13,62 @@ library(tidyverse)
 
 ```{r data}
 # data prep 
+df_crab = read.table("/Users/yukijoyama/Library/CloudStorage/GoogleDrive-jikeyu1995@gmail.com/My Drive/version_control/MS-biostats/Biostatistical Methods 2/Biostatistical Methods 2/p8131_hw5_files/HW5-crab.txt", header = TRUE)
+df_para = read.table("/Users/yukijoyama/Library/CloudStorage/GoogleDrive-jikeyu1995@gmail.com/My Drive/version_control/MS-biostats/Biostatistical Methods 2/Biostatistical Methods 2/p8131_hw5_files/HW5-parasite.txt", header = TRUE)
+```
 
-df_crab = read.table("p8131_hw5_files/HW5-crab.txt", header = TRUE)
-  
-df_para = read.table("p8131_hw5_files/HW5-parasite.txt", header = TRUE)
+# 1
+## (a)
+I will fit a Poisson model (M1) with log link with carapace width (W) as the single predictor.
+
+```{r}
+# M1: Poisson model with log link
+m1_fit <- glm(Sa ~ W, family = poisson(link = "log"), data = df_crab)
+summary(m1_fit)
+exp(m1_fit$coefficients)
+```
+
+The expected number of satellites (Sa) given carapace width (W) = 0 is `r round(exp(m1_fit$coefficients)[1], 3)`. With every unit increase in W, the expected number of Sa has multiplicative effect of `r round(exp(m1_fit$coefficients)[2], 3)` on $\mu=E(Y)$.
+
+```{r}
+# Goodness of fit
+G = sum(residuals(m1_fit, type = "pearson") ^ 2) 
+G 
+1 - pchisq(G, 2)
+```
+
+Thus, we reject the null. The model does not have a good fit. 
+
+## (b)
+Now, I will fit a Poisson model (M2) with log link with carapace width (W) and weight (Wt) as predictors.
+
+```{r}
+# M2: W and Wt as predictors
+m2_fit <- glm(Sa ~ W + Wt, family = poisson(link = "log"), data = df_crab)
+summary(m2_fit)
+exp(m2_fit$coefficients)
+```
+
+```{r}
+# compare with M1
+anova(m1_fit, m2_fit)
+```
+
+## (c)
+```{r}
+# over-dispersion in M2
 
 ```
+
+```{r}
+# adjust for over-dispersion
+```
+
+
+# 2
+## a
+
+## b
+
+## c
 
