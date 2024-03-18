@@ -34,10 +34,10 @@ The expected number of satellites (Sa) given carapace width (W) = 0 is `r round(
 # Goodness of fit
 G = sum(residuals(m1_fit, type = "pearson") ^ 2) 
 G 
-1 - pchisq(G, 2)
+1 - pchisq(G, 171)
 ```
 
-Thus, we reject the null. The model does not have a good fit. 
+Thus, we reject the null, which indicates that the model does not have a good fit. 
 
 ## (b)
 Now, I will fit a Poisson model (M2) with log link with carapace width (W) and weight (Wt) as predictors.
@@ -49,21 +49,44 @@ summary(m2_fit)
 exp(m2_fit$coefficients)
 ```
 
+The expected number of Sa given W = 0 and Wt = 0 is `r round(exp(m2_fit$coefficients)[1], 3)`. All else being equal, with every unit increase in W, the expected number of Sa has multiplicative effect of `r round(exp(m2_fit$coefficients)[2], 3)` on $\mu=E(Y)$. Similarly, holding other variables constant, with every unit increase in Wt, the expected number of Sa has multiplicative effect of `r round(exp(m2_fit$coefficients)[3], 3)` on $\mu=E(Y)$.   
+
+M1 is nested within M2, so I will perform ANOVA to compare the two models. 
 ```{r}
 # compare with M1
 anova(m1_fit, m2_fit)
 ```
 
+The residual deviance appears to be reduced in M2 compared to M1, indicating that M2 has a better fit by adding Wt as a predictor. We need to note that the coefficient in W in M2 is not statistically significant unlike M1.
+
 ## (c)
 ```{r}
 # over-dispersion in M2
+# calculate dispersion parameter
+G.stat = sum(residuals(m2_fit, type = 'pearson', data = df_crab) ^ 2) # pearson chisq 
+G.stat
+phi = G.stat / m2_fit$df.residual
+phi
+tilde.phi = m2_fit$deviance / m2_fit$df.residual
+tilde.phi 
 
+# test over-dispersion (half normal plot)
+res = residuals(m2_fit, type = 'pearson')
+plot(qnorm((173 + 1: 173 + 0.5)/(2 * 173 + 1.125)), sort(abs(res)), xlab = 'Expected Half-Normal Order Stats', ylab = 'Ordered Abs Pearson Residuals')
+abline(a = 0, b = 1)
+abline(a = 0, b = sqrt(phi), lty = 2, col = 'red')
 ```
+
+There is a linear deviation from the reference line in the half normal plot, suggesting that the response variance of the data exceeds the $\mu$ assumed by the model.   
+Hence, we can say that there is over-dispersion in the original model.  
+The estimate of dispersion parameter: $\hat\phi=$ `r round(phi, 2)`
 
 ```{r}
 # adjust for over-dispersion
+summary(m2_fit, dispersion = phi)
 ```
 
+After adjusting for over-dispersion, The coefficient values remain the same. However, the standard errors of each variable differ from the unadjusted model. Now, all coefficients are not statistically significant.
 
 # 2
 ## a
