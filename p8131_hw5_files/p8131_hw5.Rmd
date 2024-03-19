@@ -9,6 +9,8 @@ output: pdf_document
 knitr::opts_chunk$set(echo = T, message = F, warning = F)
 
 library(tidyverse)
+library(pscl) # zip model
+library(performance)
 ```
 
 ```{r data}
@@ -34,7 +36,7 @@ The expected number of satellites (Sa) given carapace width (W) = 0 is `r round(
 # Goodness of fit
 G = sum(residuals(m1_fit, type = "pearson") ^ 2) 
 G 
-1 - pchisq(G, 171)
+1 - pchisq(G, m1_fit$df.residual)
 ```
 
 Thus, we reject the null, which indicates that the model does not have a good fit. 
@@ -90,8 +92,40 @@ After adjusting for over-dispersion, The coefficient values remain the same. How
 
 # 2
 ## a
+I will fit a Poisson model with log link with area, year, and leangth of the fish as predictors. Area and Year are treated as categorical variables. 
+```{r}
+# Poisson model with log link
+poi_fit <- glm(Intensity ~ factor(Area) + factor(Year) + Length, family = poisson(link = "log"), data = df_para)
+summary(poi_fit)
+exp(poi_fit$coefficients)
+```
+
+The expected number of parasites given Area = 1, Year = 1999, and Length = 0 is `r round(exp(poi_fit$coefficients)[1], 3)`. All else being equal, the expected number of parasites has multiplicative effect of `r round(exp(poi_fit$coefficients)[2], 3)` on $\mu=E(Y)$ when Area = 2; `r round(exp(poi_fit$coefficients)[3], 3)` when Area = 3; `r round(exp(poi_fit$coefficients)[4], 3)` when Area = 4. Similarly, holding other variables constant, the expected number of parasites has multiplicative effect of `r round(exp(poi_fit$coefficients)[5], 3)` on $\mu=E(Y)$ when Year = 2000; `r round(exp(poi_fit$coefficients)[6], 3)` when Year = 2001. Finally, with every unit increase in Length, the expected number of parasites has multiplicative effect of `r round(exp(poi_fit$coefficients)[7], 3)` on $\mu=E(Y)$ with other predictors unchanged.
 
 ## b
+```{r}
+# Goodness of fit
+G = sum(residuals(poi_fit, type = "pearson") ^ 2) 
+G 
+1 - pchisq(G, poi_fit$df.residual)
+```
+
+Given the chi-squared goodness of fit statistic and its p-value, we reject the null and conclude that the model does not have a good fit.
 
 ## c
+```{r}
+# check zero-inflation
+check_zeroinflation(poi_fit)
+```
+
+I will refit the model using the same predictors accounting for the zero-inflation issue. 
+
+```{r}
+# fit zero-inflated poisson model
+zip_fit <- zeroinfl(Intensity ~ factor(Area) + factor(Year) + Length, data = df_para) # child and camper for poisson, persons for binary
+summary(zip_fit)
+```
+
+All of the predictors in both the count and zero-inflation model are statistically significant except Year = 2001 in count model.  
+The zero-inflation model tells us that the fish in Area 2, 3 (versus Area 1), and fish in 2001 (versus 1999) are more susceptible to parasites. The count model indicates that for fish with more than one parasites, Area 2, 3, 4 (versus Area 1), and 2001 (versus 1999) tend to have higher number of parasites. 
 
