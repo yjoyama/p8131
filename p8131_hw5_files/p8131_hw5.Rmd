@@ -124,8 +124,15 @@ I will refit the model using the same predictors accounting for the zero-inflati
 # fit zero-inflated poisson model
 zip_fit <- zeroinfl(Intensity ~ factor(Area) + factor(Year) + Length, data = df_para) # child and camper for poisson, persons for binary
 summary(zip_fit)
+
+exp(coef(zip_fit))
 ```
 
+
 All of the predictors in both the count and zero-inflation model are statistically significant except Year = 2001 in count model.  
-The zero-inflation model tells us that the fish in Area 2, 3 (versus Area 1), and fish in 2001 (versus 1999) are more susceptible to parasites. The count model indicates that for fish with more than one parasites, Area 2, 3, 4 (versus Area 1), and 2001 (versus 1999) tend to have higher number of parasites. 
+
+The zero-inflation model tells us that the baseline odds of being fish that are not susceptible to parasites (Intensity = 0) is `r round(exp(coef(zip_fit)["zero_(Intercept)"]), 3)`. Area 2, 3 (versus Area 1), and Year 2001 (versus 1999) increase the odds of being fish that are susceptible to parasites (Intensity $\neq$ 0) by `r round(exp(coef(zip_fit)["zero_factor(Area)2"]), 3)`, `r round(exp(coef(zip_fit)["zero_factor(Area)3"]), 3)`, `r round(exp(coef(zip_fit)["zero_factor(Year)2001"]), 3)` accordingly.  
+The odds is decreased by one unit increase in Length by `r round(exp(coef(zip_fit)["zero_Length"]), 3)`, Area 4 by `r round(exp(coef(zip_fit)["zero_factor(Area)4"]), 3)`, and Year 2000 by `r round(exp(coef(zip_fit)["zero_factor(Year)2000"]), 3)`.  
+
+The count model indicates that the baseline number of parasite is `r round(exp(coef(zip_fit)["count_(Intercept)"]), 3)` among fish with more than one parasites. Area 2, 3, 4 (versus Area 1), and 2000 (versus 1999) increase the number of parasites by `r round(exp(coef(zip_fit)["count_factor(Area)2"]), 3)`, `r round(exp(coef(zip_fit)["count_factor(Area)3"]), 3)`, `r round(exp(coef(zip_fit)["count_factor(Area)4"]), 3)`, `r round(exp(coef(zip_fit)["count_factor(Year)2000"]), 3)` times accordingly. Year 2001 and one unit increase in Length decrease Intensity by `r round(exp(coef(zip_fit)["count_factor(Year)2001"]), 3)` and `r round(exp(coef(zip_fit)["count_Length"]), 3)` times (Year 2001 is insignificant).
 
