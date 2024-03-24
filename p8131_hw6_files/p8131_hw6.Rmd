@@ -1,0 +1,18 @@
+---
+title: "Homework 6"
+author: "Yuki Joyama"
+date: "2024-03-24"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, message = F, warning = F)
+
+library(tidyverse)
+```
+
+```{r data}
+# data prep
+df_crab = read.table("/Users/yukijoyama/Library/CloudStorage/GoogleDrive-jikeyu1995@gmail.com/My Drive/version_control/MS-biostats/Biostatistical Methods 2/Biostatistical Methods 2/p8131_hw6_files/HW6-dental.txt", header = TRUE)
+```
+
