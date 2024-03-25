@@ -77,10 +77,10 @@ df_new |>
 Distance tends to increase with age, with boys having relatively higher distance values than girls.
 
 ## b
-```{r, out.width="1.0\\linewidth", include=TRUE, fig.align="center", echo=FALSE}
-# knitr::include_graphics("")
-```
-
+The marginal form is 
+$$
+E(Y_{ij}) = \beta_0+ \beta_1age_{ij}
+$$
 
 ## c
 ### Compound symmetry covariance
