@@ -9,10 +9,58 @@ output: pdf_document
 knitr::opts_chunk$set(echo = T, message = F, warning = F)
 
 library(tidyverse)
+
+# setup plot theme
+theme_set(
+  theme_bw() +
+    theme(legend.position = "top")
+  )
 ```
 
+# 1
+```{r, out.width="1.0\\linewidth", include=TRUE, fig.align="center", echo=FALSE}
+knitr::include_graphics("/Users/yukijoyama/Library/CloudStorage/GoogleDrive-jikeyu1995@gmail.com/My Drive/version_control/MS-biostats/Biostatistical Methods 2/Biostatistical Methods 2/p8131_hw6_files/Screenshot 2024-03-24 at 23.17.48.png")
+```
+
+# 2
 ```{r data}
 # data prep
-df_crab = read.table("/Users/yukijoyama/Library/CloudStorage/GoogleDrive-jikeyu1995@gmail.com/My Drive/version_control/MS-biostats/Biostatistical Methods 2/Biostatistical Methods 2/p8131_hw6_files/HW6-dental.txt", header = TRUE)
+df = read.table("/Users/yukijoyama/Library/CloudStorage/GoogleDrive-jikeyu1995@gmail.com/My Drive/version_control/MS-biostats/Biostatistical Methods 2/Biostatistical Methods 2/p8131_hw6_files/HW6-dental.txt", header = TRUE) |> 
+  mutate(
+    Gender = as.factor(
+      case_when(
+        Gender == 0 ~ "girl",
+        Gender == 1 ~ "boy"
+      )
+    )
+  )
 ```
+
+## a
+```{r plot}
+# create a spaghetti plot 
+df |> 
+  group_by(Age, Gender) |> 
+  summarise(value_mean = mean(Distance)) |> 
+  ggplot(aes(x = Age, y = value_mean, group = Gender, color = Gender)) + 
+  geom_line() + # spaghetti plot
+  theme(legend.text = element_text(size = 6)) + # changed legend text size
+  guides(color = guide_legend(ncol = 3)) + # changed the number of legend columns
+  labs(
+    x = "age",
+    y = "distance"
+  ) +
+  viridis::scale_color_viridis(
+    discrete = TRUE
+  )
+```
+
+Distance tends to increase with age, with boys having higher average distance values than girls.
+
+## b
+
+## c
+
+
+
 
