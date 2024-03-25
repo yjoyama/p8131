@@ -9,6 +9,7 @@ output: pdf_document
 knitr::opts_chunk$set(echo = T, message = F, warning = F)
 
 library(tidyverse)
+library (nlme)
 
 # setup plot theme
 theme_set(
@@ -38,15 +39,33 @@ df = read.table("/Users/yukijoyama/Library/CloudStorage/GoogleDrive-jikeyu1995@g
 
 ## a
 ```{r plot}
+# grouped data
+df_new = groupedData (Distance ~ Age | Child, data = as.data.frame(df))
+
 # create a spaghetti plot 
-df |> 
-  group_by(Age, Gender) |> 
-  summarise(value_mean = mean(Distance)) |> 
-  ggplot(aes(x = Age, y = value_mean, group = Gender, color = Gender)) + 
+# boy
+df_new |> 
+  filter(Gender == "boy") |> 
+  ggplot(aes(x = Age, y = Distance, group = Child, color = Child)) + 
   geom_line() + # spaghetti plot
   theme(legend.text = element_text(size = 6)) + # changed legend text size
-  guides(color = guide_legend(ncol = 3)) + # changed the number of legend columns
   labs(
+    title = "Boy",
+    x = "age",
+    y = "distance"
+  ) +
+  viridis::scale_color_viridis(
+    discrete = TRUE
+  )
+
+# girl
+df_new |> 
+  filter(Gender == "girl") |> 
+  ggplot(aes(x = Age, y = Distance, group = Child, color = Child)) + 
+  geom_line() + # spaghetti plot
+  theme(legend.text = element_text(size = 6)) + # changed legend text size
+  labs(
+    title = "Girl",
     x = "age",
     y = "distance"
   ) +
@@ -55,11 +74,30 @@ df |>
   )
 ```
 
-Distance tends to increase with age, with boys having higher average distance values than girls.
+Distance tends to increase with age, with boys having relatively higher distance values than girls.
 
 ## b
+```{r, out.width="1.0\\linewidth", include=TRUE, fig.align="center", echo=FALSE}
+# knitr::include_graphics("")
+```
+
 
 ## c
+### Compound symmetry covariance
+```{r}
+# summary(gls(Distance ~ Gender + Age, data = df, correlation = corCompSymm(form = ~ 1 | Gender), method = "REML"))
+```
+
+### Exponential covariance
+```{r}
+
+```
+
+### Autoregressive covariance
+```{r}
+
+```
+
 
 
 
