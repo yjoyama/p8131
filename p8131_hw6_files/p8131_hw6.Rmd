@@ -85,18 +85,41 @@ $$
 ## c
 ### Compound symmetry covariance
 ```{r}
-# summary(gls(Distance ~ Gender + Age, data = df, correlation = corCompSymm(form = ~ 1 | Gender), method = "REML"))
+summary(gls(Distance ~ Gender + Age, data = df, 
+            correlation = corCompSymm(form = ~ 1 | Gender), method = "REML"))
 ```
 
 ### Exponential covariance
 ```{r}
-
+summary(gls(Distance ~ Gender + Age, data = df, 
+            correlation = corExp(form = ~ 1 | Gender), method = "REML"))
 ```
 
 ### Autoregressive covariance
 ```{r}
-
+summary(gls(Distance ~ Gender + Age, data = df, 
+            correlation = corAR1(form = ~ 1 | Gender), method = "REML"))
 ```
+
+Coefficient Parameter Estimates:  
+**Intercept** - Similar across all correlation structures, with values around 17.74.  
+**Gender (girl)** - Coefficient estimates vary slightly.  
+  Compound symmetry: -2.321  
+  Exponential: -2.267  
+  Autoregresive: -2.267  
+P-values are significant across all structures, indicating gender has a significant influence on the distance.  
+**Age** - Coefficient estimates are similar across all structures, approximately 0.658. Age also shows significance in predicting distance across all correlation structures.
+
+Covariance Estimates:  
+**Compound Symmetry**   
+Parameter estimate (Rho): 3.42e-18    
+**Exponential Correlation**  
+Parameter estimate (range): 1.26  
+**Autoregressive covariance**  
+Parameter estimate (Phi): 0.45    
+
+The covariance estimates vary significantly across correlation structures.
+
 
 
 
