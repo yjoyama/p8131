@@ -77,46 +77,42 @@ df_new |>
 Distance tends to increase with age, with boys having relatively higher distance values than girls.
 
 ## b
-The marginal form is 
-$$
-E(Y_{ij}) = \beta_0+ \beta_1age_{ij}
-$$
+```{r, out.width="1.0\\linewidth", include=TRUE, fig.align="center", echo=FALSE}
+knitr::include_graphics("/Users/yukijoyama/Library/CloudStorage/GoogleDrive-jikeyu1995@gmail.com/My Drive/version_control/MS-biostats/Biostatistical Methods 2/Biostatistical Methods 2/p8131_hw6_files/Screenshot 2024-03-26 at 23.41.20.png")
+```
 
 ## c
 ### Compound symmetry covariance
 ```{r}
 summary(gls(Distance ~ Gender + Age, data = df, 
-            correlation = corCompSymm(form = ~ 1 | Gender), method = "REML"))
+            correlation = corCompSymm(form = ~ 1 | Child), method = "REML"))
 ```
 
 ### Exponential covariance
 ```{r}
 summary(gls(Distance ~ Gender + Age, data = df, 
-            correlation = corExp(form = ~ 1 | Gender), method = "REML"))
+            correlation = corExp(form = ~ 1 | Child), method = "REML"))
 ```
 
 ### Autoregressive covariance
 ```{r}
 summary(gls(Distance ~ Gender + Age, data = df, 
-            correlation = corAR1(form = ~ 1 | Gender), method = "REML"))
+            correlation = corAR1(form = ~ 1 | Child), method = "REML"))
 ```
 
 Coefficient Parameter Estimates:  
-**Intercept** - Similar across all correlation structures, with values around 17.74.  
+**Intercept** - Similar across all correlation structures.  
 **Gender (girl)** - Coefficient estimates vary slightly.  
-  Compound symmetry: -2.321  
-  Exponential: -2.267  
-  Autoregresive: -2.267  
 P-values are significant across all structures, indicating gender has a significant influence on the distance.  
-**Age** - Coefficient estimates are similar across all structures, approximately 0.658. Age also shows significance in predicting distance across all correlation structures.
+**Age** - Coefficient estimates are similar across all structures. Age also shows significance in predicting distance across all correlation structures.
 
 Covariance Estimates:  
 **Compound Symmetry**   
-Parameter estimate (Rho): 3.42e-18    
+Parameter estimate (Rho): 0.614   
 **Exponential Correlation**  
-Parameter estimate (range): 1.26  
+Parameter estimate (range): 2.134    
 **Autoregressive covariance**  
-Parameter estimate (Phi): 0.45    
+Parameter estimate (Phi): 0.626      
 
 The covariance estimates vary significantly across correlation structures.
 
