@@ -1,0 +1,38 @@
+---
+title: "Homework 7"
+author: "Yuki Joyama"
+date: "2024-04-01"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, message = F, warning = F)
+
+library(tidyverse)
+library(ggplot2)
+library(nlme)
+
+# setup plot theme
+theme_set(
+  theme_bw() +
+    theme(legend.position = "top")
+  )
+```
+
+```{r data}
+# data prep
+df = read_csv("HW7-politeness_data.csv")
+```
+
+## (a) Exploratory Analysis
+
+```{r boxplot}
+
+```
+
+
+
+
+
+
+
