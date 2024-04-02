@@ -2,7 +2,7 @@
 title: "Homework 7"
 author: "Yuki Joyama"
 date: "2024-04-01"
-output: github_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = T, message = F, warning = F)
 library(tidyverse)
 library(ggplot2)
 library(nlme)
+library(lme4)
 
 # setup plot theme
 theme_set(
@@ -27,12 +28,87 @@ df = read_csv("HW7-politeness_data.csv")
 ## (a) Exploratory Analysis
 
 ```{r boxplot}
+# gender/attitude and pitch
+df |> 
+  ggplot(aes(x = attitude, y = frequency, fill = gender)) +
+  geom_boxplot() +
+  facet_wrap(~gender)
 
+gender <- df$gender
+attitude <- df$attitude
+subject <- df$subject
+frequency <- df$frequency
+scenario <- df$scenario
 ```
 
+The boxplots illustrates the relation between gender/attitude and pitch. We can see that Female tend to have higher frequency than Male, and lower frequency is more likely to be considered as formal (pol). 
 
+## (b) LMM with random intercepts
+I will fit a mixed effects model with random intercepts for different subjects with gender and attitude being the fixed effects.  
+```{r}
+# LMM with random intercept
+# gender, attitude fixed
+LMM1 <- lme(frequency ~ gender + attitude, random = ~1 | subject, method = "REML")
 
+summary(LMM1)
+```
 
+The covariance matrix for a subject Yi:
+```{r}
+VarCorr(LMM1)
+```
 
+The covariance matrix for the estimates of fixed effects:
+```{r}
+vcov(LMM1)
+```
+
+The best linear unbiased predictions (BLUPs) for subject-specific intercepts:
+```{r}
+random.effects(LMM1)
+```
+
+Residuals: 
+```{r}
+head(LMM1$residuals)
+```
+
+# (c) LMM with random intercepts and interaction
+I will fit a mixed effects model with random intercepts for different subjects with gender, attitude and their interaction being the fixed effects.  
+```{r}
+# LMM with random intercept
+# gender, attitude, gender*attitude fixed
+LMM2 <- lme(frequency ~ gender + attitude + gender*attitude, random = ~1 | subject, method = "REML")
+
+summary(LMM2)
+```
+The output indicates that the interaction term does not have a significant influence on the response variable.
+
+Now, I will refit LMM1 and LMM2 using ML method for the likelihood ratio test.
+```{r}
+LMM1.1 <- lme(frequency ~ gender + attitude, random = ~1 | subject, method = "ML")
+LMM2.1 <- lme(frequency ~ gender + attitude + gender*attitude, random = ~1 | subject, method = "ML")
+
+# LRT of interaction 
+anova(LMM1.1, LMM2.1)
+```
+Given the result (p-value > 0.05), we fail to reject the null hypothesis. Therefore, we conclude that including the interaction term is not significantly associated with pitch. 
+
+(d) LMM with random intercept for both subject and scenarios
+I will fit a mixed effects model with random intercepts for different subjects and scenarios with gender and attitude being the fixed effects. 
+```{r}
+LMM3 <- lmer(frequency ~ gender + attitude + (1 | subject) + (1 | scenario))
+
+summary(LMM3) 
+```
+
+The covariance matrix for a subject Yi:
+```{r}
+v <- VarCorr(LMM3)
+as.matrix(Matrix::bdiag(v))
+```
+
+where Var(scenario) = 224.50 and Var(subject) = 613.19.   
+The coefficient for the fixed effect `attitudepol` is -20.00. This means that the pitch is lower in polite speech than in informal speech, by about 20 Hz holding other variable constant. 
 
 
