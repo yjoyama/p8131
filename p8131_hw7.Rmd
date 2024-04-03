@@ -53,12 +53,21 @@ LMM1 <- lme(frequency ~ gender + attitude, random = ~1 | subject, method = "REML
 summary(LMM1)
 ```
 
-The covariance matrix for a subject Yi:
 ```{r}
 VarCorr(LMM1)
 ```
 
-The covariance matrix for the estimates of fixed effects:
+Given the output, 
+$$
+cov(Y_i) = \begin{pmatrix}
+1445.90 & 598.20 & ... & 598.20 \\
+598.20 & 1445.90 & ... & 598.20\\
+...\\
+598.20 & 598.20 & ... & 1445.90
+\end{pmatrix}
+$$
+
+The covariance matrix for the estimates of fixed effects are as follows:
 ```{r}
 vcov(LMM1)
 ```
@@ -70,7 +79,8 @@ random.effects(LMM1)
 
 Residuals: 
 ```{r}
-head(LMM1$residuals)
+resid(LMM1)
+hist(resid(LMM1))
 ```
 
 # (c) LMM with random intercepts and interaction
@@ -94,7 +104,7 @@ anova(LMM1.1, LMM2.1)
 ```
 Given the result (p-value > 0.05), we fail to reject the null hypothesis. Therefore, we conclude that including the interaction term is not significantly associated with pitch. 
 
-(d) LMM with random intercept for both subject and scenarios
+# (d) LMM with random intercept for both subject and scenarios
 I will fit a mixed effects model with random intercepts for different subjects and scenarios with gender and attitude being the fixed effects. 
 ```{r}
 LMM3 <- lmer(frequency ~ gender + attitude + (1 | subject) + (1 | scenario))
@@ -102,13 +112,20 @@ LMM3 <- lmer(frequency ~ gender + attitude + (1 | subject) + (1 | scenario))
 summary(LMM3) 
 ```
 
-The covariance matrix for a subject Yi:
 ```{r}
-v <- VarCorr(LMM3)
-as.matrix(Matrix::bdiag(v))
+print(VarCorr(LMM3), comp = "Variance")
 ```
 
-where Var(scenario) = 224.50 and Var(subject) = 613.19.   
+Given the output, 
+$$
+cov(Y_i) = \begin{pmatrix}
+1475.47 & 837.69 & ... & 837.69 \\
+837.69 & 1475.47 & ... & 837.69\\
+...\\
+837.69 & 837.69& ... & 1475.47
+\end{pmatrix}
+$$
 The coefficient for the fixed effect `attitudepol` is -20.00. This means that the pitch is lower in polite speech than in informal speech, by about 20 Hz holding other variable constant. 
+
 
 
