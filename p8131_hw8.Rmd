@@ -1,0 +1,26 @@
+---
+title: "Homework 8"
+author: "Yuki Joyama"
+date: "2024-04-07"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, message = F, warning = F)
+
+library(readxl)
+library(tidyverse)
+library(ggplot2)
+
+# setup plot theme
+theme_set(
+  theme_bw() +
+    theme(legend.position = "top")
+  )
+```
+
+```{r data}
+# data prep
+df = read_excel("HW8-HEALTH.xlsx") |> 
+  janitor::clean_names()
+```
