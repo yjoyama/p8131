@@ -2,15 +2,19 @@
 title: "Homework 8"
 author: "Yuki Joyama"
 date: "2024-04-07"
-output: github_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = T, message = F, warning = F)
 
 library(readxl)
+library(gtsummary)
 library(tidyverse)
 library(ggplot2)
+library(gee) 
+library(lme4)
+library(nlme)
 
 # setup plot theme
 theme_set(
@@ -22,5 +26,102 @@ theme_set(
 ```{r data}
 # data prep
 df = read_excel("HW8-HEALTH.xlsx") |> 
-  janitor::clean_names()
+  janitor::clean_names() |> 
+  rename(trt = txt)
+
+head(df)
 ```
+
+# (a)
+
+```{r}
+# limit data to time == 1
+df_base = df |> 
+  filter(time == 1)
+
+head(df_base)
+
+# summarize randomized group assignment and health self_rating at the time of randomization
+theme_gtsummary_journal(journal = "nejm")
+
+df_base |> 
+  select(trt, health) |> 
+  tbl_summary(
+    by = trt,
+    statistic = list(
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    digits = all_continuous() ~ 1,
+    label = list(
+      health ~ "Health"
+    )
+  ) |> 
+  # modify_caption("Table 1: Baseline Characteristics") |> 
+  as_flex_table() 
+```
+
+We can see that the Intervention group exhibits a slightly higher count of individuals who reported "poor" in their self-ratings compared to the Control group.
+
+```{r}
+# chi-square test
+contingency_table <- table(df_base$trt, df_base$health)
+
+chisq.test(contingency_table)
+```
+
+The Pearson's chi-squared test (p-value = 0.6369 > 0.05) indicates that there is no statistically significant difference in health self-rating between two treatment groups at the time of randomization.
+
+# (b)
+To analyze the participants' self-rated level of health across all study follow-up visits (except for the time of randomization), I will fit a GEE model with health self-rating at the baseline, treatment group, month post randomization, and age group as predictors.    
+The correlation structure is set as `unstructured` in this model.
+```{r}
+# data prep; make time 1 as another covariate
+df_fu = df |> 
+  group_by(id) |> 
+  mutate(baseline = health[time == 1]) |> # record the baseline health ratings
+  mutate(nstat = ifelse(health == "Poor", 0, 1)) |> # poor: 0, good: 1
+  filter(time != 1) |> 
+  ungroup() |> 
+  arrange(id) # arrange the data based on the group variable
+
+head(df_fu)
+
+# fit logistic GEE with unstructured correlation structure
+fit.gee = gee(
+  nstat ~ baseline + trt + as.factor(time) + agegroup,
+  data = df_fu, family = "binomial", id = id,
+  corstr = "unstructured", scale.fix = FALSE
+)
+
+summary(fit.gee)
+
+# OR
+exp(fit.gee$coef)
+```
+
+In our analysis, participants with a `Poor` health self-rating at baseline were found to have `r round(exp(fit.gee$coef[2]), 2)` times the odds of reporting a `Good` self-rating compared to those with a `Good` health self-rating at baseline, holding other variables constant. Additionally, all else being equal, the intervention group exhibited `r round(exp(fit.gee$coef[3]), 2)` times the odds of reporting a `Good` self-rating. Moreover, individuals in the age group 25-34 had `r round(exp(fit.gee$coef[6]), 2)` times the odds of reporting a `Good` self-rating compared to those in the age group 15-24.     
+We should note that the covariates `time = 3`, `time = 4`, and `agegroup = 35+` do not have statistically significant influence on the response variable given the robust z values (z < 1.96).
+
+# (c)  
+Here I will fit a generalized linear mixed effects model with subject-specific random intercepts.
+```{r}
+# fit glmm with subject-specific random intercepts
+fit.glmm = glmer(
+  nstat ~ baseline + trt + as.factor(time) + agegroup + (1 | id),
+  data = df_fu, family = "binomial", nAGQ = 0
+)
+
+summary(fit.glmm)
+exp(fixed.effects(fit.glmm))
+```
+Similar to the GEE model, the covariates `time = 3`, `time = 4`, and `agegroup = 35+` do not have statistically significant influence on the response variable in this model.    
+The fixed effects tells us that participants with a `Poor` health self-rating at baseline were found to have `r round(exp(fixed.effects(fit.glmm))[2], 2)` times the odds of reporting a `Good` self-rating compared to those with a `Good` health self-rating at baseline, holding other variables and random effects constant. All else being equal, the intervention group exhibited `r round(exp(fixed.effects(fit.glmm))[3], 2)` times the odds of reporting a `Good` self-rating than the control group. The result also indicates that the individuals in the age group 25-34 had `r round(exp(fixed.effects(fit.glmm))[6], 2)` times the odds of reporting a `Good` self-rating compared to those in the age group 15-24, with other variables and random effects unchanged.     
+
+The subject-specific random intercepts are as follows:  
+```{r}
+random.effects(fit.glmm)
+```
+
+The primary distinction between the GEE model and the GLMM lies in their focus: the GEE model provides insights into the **population-averaged** odds ratio/log odds of the response variable, while the GLMM with subject-specific random intercepts allows for the examination of individual variations. In the GLMM, participants possess both random intercepts, which vary among individuals, and fixed intercepts, which remain consistent across the population. Thus, we can infer the **subject-specific** odds ratio/log odds using the GLMM.
+
+
