@@ -1,0 +1,22 @@
+---
+title: "Homework 9"
+author: "Yuki Joyama"
+date: "2024-04-23"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, message = F, warning = F)
+
+library(tidyverse)
+
+# setup plot theme
+theme_set(
+  theme_bw() +
+    theme(legend.position = "top")
+  )
+```
+
+```{r, out.width="1.0\\linewidth", include=TRUE, fig.align="center", echo=FALSE}
+# knitr::include_graphics("")
+```
