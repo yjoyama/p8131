@@ -27,7 +27,7 @@ knitr::include_graphics("./hw9_q1.png")
 
 # 2
 ```{r, out.width="1.0\\linewidth", include=TRUE, fig.align="center", echo=FALSE}
-# knitr::include_graphics("")
+knitr::include_graphics("./hw9_q2.png")
 ```
 
 # 3
