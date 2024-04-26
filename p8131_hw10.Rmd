@@ -1,0 +1,20 @@
+---
+title: "Homework 10"
+author: "Yuki Joyama"
+date: "2024-04-26"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, message = F, warning = F)
+
+library(tidyverse)
+library(KMsurv)
+
+# setup plot theme
+theme_set(
+  theme_bw() +
+    theme(legend.position = "top")
+  )
+```
+
