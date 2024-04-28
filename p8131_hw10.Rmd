@@ -2,7 +2,7 @@
 title: "Homework 10"
 author: "Yuki Joyama"
 date: "2024-04-26"
-output: github_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo = T, message = F, warning = F)
 
 library(tidyverse)
 library(KMsurv)
+library(survminer)
+library(survival)
 
 # setup plot theme
 theme_set(
@@ -17,4 +19,105 @@ theme_set(
     theme(legend.position = "top")
   )
 ```
+
+# 1
+Group 1: 4, 12+, 15, 21+, 23  
+Group 2: 2, 6+, 8+, 10, 19  
+$H_0$: $h_1(t)=h_2(t)$ for all t  
+$H_1$: $h_1(t)\neq h_2(t)$ for some t  
+
+```{r}
+df = tibble(
+  group = rep(c(1, 2), each = 5),
+  time = c(4, 12, 15, 21, 23, 2, 6, 8, 10, 19),
+  delta = c(1, 0, 1, 0, 1, 1, 0, 0, 1, 1)
+)
+
+str(df)
+
+# check censored
+Surv(df$time, df$delta, type = "right")
+```
+
+```{r}
+# log-rank test
+survdiff(Surv(time, delta) ~ group, data = df)
+```
+
+```{r}
+# plot survival function 
+ggsurvplot(survfit(Surv(time, delta) ~ group, data = df), xlab = "Time") 
+```
+
+P-value > 0.05 suggests that we cannot reject the null hypothesis. Thus, we can conclude that $h_1(t)=h_2(t)$ for all t . 
+
+# 2
+```{r}
+data(kidtran)
+str(kidtran)
+```
+Let's compare the survival curves for different races in each sex group.
+
+In the log-rank test, I set the hypotheses as follows:   
+$H_0$: the death times of kidney transplant patients are identical among four groups  
+$H_1$: the death times of kidney transplant patients are not the same among four groups
+
+```{r}
+# log-rank test
+survdiff(Surv(time, delta) ~ race + gender, data = kidtran)
+```
+
+```{r}
+# plot survival function 
+ggsurvplot(survfit(Surv(time, delta) ~ race + gender, data = kidtran), xlab = "Time") 
+```
+
+The result (p-value > 0.05) indicates that we cannot reject the null hypothesis; hence, there is no statistically significant difference in the survival curves among four groups.
+
+# 3
+```{r}
+data(larynx)
+
+df <- as_tibble(larynx) |> 
+  mutate(
+    z1 = ifelse(stage == 2, 1, 0),
+    z2 = ifelse(stage == 3, 1, 0),
+    z3 = ifelse(stage == 4, 1, 0),
+    z4 = age
+  )
+
+str(df)  
+```
+
+Let  
+`z1` = 1 if the patient is in stage 2, 0 otherwise;  
+`z2` = 1 if the patient is in stage 3, 0 otherwise;  
+`z3` = 1 if the patient is in stage 4, 0 otherwise;  
+`z4` = age of the patient (in years);   
+
+Now, I will fit a proportional hazards model using the covariates `z1`, `z2`, `z3`, `z4` and the interaction term `z1`*`z4`. 
+
+```{r}
+fit = coxph(Surv(time, delta) ~ factor(z1) + factor(z2) + factor(z3) + z4 + (factor(z1) * z4), data = df, ties = "breslow")
+
+summary(fit)
+```
+
+Significant p-values (< 0.05) indicate that the corresponding variables `factor(z1)1`, `factor(z3)1`, and `factor(z1)1:z4` have a significant effect on survival.  
+All else being equal, being Stage 2 patients reduce the hazard by a factor of 0.00062 (vs Stage 1 patients); being Stage 4 patients increase the hazard by a factor of 5.77 (vs Stage 1 patients). There seems to be an interaction between Stage 2 patients and age. 
+
+The relative risk of dying for a Stage 2 patient of age 50 vs Stage 1 patient of age 50 can be calculated as follows:   
+$\text{RR} = \frac{h_2(t)}{h_1(t)}=\frac{e^{-7.3820143+50\times0.0059729}}{e^{50\times0.0059729}}\approx0.00062$
+
+
+```{r}
+# plot the survival rate curve
+fit2 = survfit(fit, newdata = data.frame(z4 = 50, z1 = 1, z2 = 0, z3 = 0))
+fit1 = survfit(fit, newdata = data.frame(z4 = 50, z1 = 0, z2 = 0, z3 = 0))
+
+plot(fit2, col = "black", xlab = "Time", ylab = "Survival rate", conf.int = FALSE, main = "Surv Rate of Parient at Age 50 from PH Model")
+lines(fit1, col = "red", conf.int = FALSE) 
+legend("bottomright", c("Stage 1", "Stage 2"), col = c("red", "black"), lty = 1)
+```
+
 
