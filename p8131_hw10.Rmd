@@ -107,7 +107,7 @@ Significant p-values (< 0.05) indicate that the corresponding variables `factor(
 All else being equal, being Stage 2 patients reduce the hazard by a factor of 0.00062 (vs Stage 1 patients); being Stage 4 patients increase the hazard by a factor of 5.77 (vs Stage 1 patients). There seems to be an interaction between Stage 2 patients and age. 
 
 The relative risk of dying for a Stage 2 patient of age 50 vs Stage 1 patient of age 50 can be calculated as follows:   
-$\text{RR} = \frac{h_2(t)}{h_1(t)}=\frac{e^{-7.3820143+50\times0.0059729}}{e^{50\times0.0059729}}\approx0.00062$
+$\text{RR} = \frac{h_2(t)}{h_1(t)}=\frac{e^{-7.3820143+50\times0.0059729+50\times0.1116674}}{e^{50\times0.0059729}}\approx0.166$
 
 
 ```{r}
